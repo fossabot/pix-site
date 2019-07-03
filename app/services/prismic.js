@@ -13,10 +13,6 @@ export default Service.extend({
       options = {
         accessToken: config.APP.PRISMIC_API_TOKEN,
       }
-
-      const cookie = Cookie.get(PrismicJS.previewCookie)
-
-      console.log('cookie', cookie)
     }
 
     return PrismicJS.getApi(apiEndpoint, options);
@@ -68,12 +64,17 @@ export default Service.extend({
     
     const api = await this.getApi();
 
-    return api.previewSession(token, resolveDocumentLink, '/');
+    const url = await api.previewSession(token, resolveDocumentLink, '/');
+    console.log('url',url);
+    
+    return url; 
   },
 
 });
 
 function resolveDocumentLink(doc) {
+  console.log('doc',doc);
+  
   if (doc.type === 'news_item') {
     return ['news.show', doc.uid]
   }
