@@ -6,9 +6,9 @@ export default Route.extend({
   prismic: service(),
 
   async model({ documentId, token }) {
-    const uid = await this.prismic.getPreviewDocument(documentId, token);
+    const routeParameters = await this.prismic.getPreviewDocumentRoute(documentId, token);
 
-    return this.transitionTo('news.show', uid);
+    return this.transitionTo(...routeParameters);
   },
 
 });

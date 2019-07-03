@@ -1,3 +1,4 @@
+import Cookie from 'js-cookie'
 import Service from '@ember/service';
 import PrismicJS from 'prismic-javascript';
 import config from '../config/environment';
@@ -6,11 +7,16 @@ export default Service.extend({
 
   getApi() {
     const apiEndpoint = 'https://pix-site.cdn.prismic.io/api/v2'; 
-    const options = {}
+    let options
 
     if (config.environment === 'development') {
-      console.log('config.APP.PRISMIC_API_TOKEN', config.APP.PRISMIC_API_TOKEN)
-      options.accessToken = config.APP.PRISMIC_API_TOKEN
+      options = {
+        accessToken: config.APP.PRISMIC_API_TOKEN,
+      }
+
+      const cookie = Cookie.get(PrismicJS.previewCookie)
+
+      console.log('cookie', cookie)
     }
 
     return PrismicJS.getApi(apiEndpoint, options);
@@ -40,7 +46,7 @@ export default Service.extend({
     return await api.getSingle(pageName);
   },
 
-  async findNewsItems({page, pageSize}) {
+  async findNewsItems({ page, pageSize }) {
     const api = await this.getApi();
     const documents = await api.query(PrismicJS.Predicates.at('document.type', 'news_item'), {
       page,
@@ -53,17 +59,24 @@ export default Service.extend({
   async getNewsItemByUid(newsItemUid) {
     const api = await this.getApi();
     const document = await api.query(PrismicJS.Predicates.at('my.news_item.uid', newsItemUid));
+    console.log('getNewsItemByUid', document)
     return document.results[0];
   },
 
-  async getPreviewDocument(documentId, token) {
+  async getPreviewDocumentRoute(documentId, token) {
+    console.log('getPreviewDocumentRoute');
+    
     const api = await this.getApi();
 
-    function linkResolver(doc) {
-      return doc.uid;
-    }
-
-    return api.previewSession(token, linkResolver, '/');
+    return api.previewSession(token, resolveDocumentLink, '/');
   },
 
 });
+
+function resolveDocumentLink(doc) {
+  if (doc.type === 'news_item') {
+    return ['news.show', doc.uid]
+  }
+
+  throw new Error('Document type not supported.')
+}
