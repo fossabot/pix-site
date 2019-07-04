@@ -7,8 +7,6 @@ export default Route.extend({
 
   async model({ uid }) {
     const document = await this.prismic.getNewsItemByUid(uid);
-
-    console.log('document', document)
     return document
   },
   

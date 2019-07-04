@@ -1,4 +1,3 @@
-import Cookie from 'js-cookie'
 import Service from '@ember/service';
 import PrismicJS from 'prismic-javascript';
 import config from '../config/environment';
@@ -9,7 +8,7 @@ export default Service.extend({
     const apiEndpoint = 'https://pix-site.cdn.prismic.io/api/v2'; 
     let options
 
-    if (config.environment === 'development') {
+    if (config.environment === 'development' || config.environment === 'staging' ) {
       options = {
         accessToken: config.APP.PRISMIC_API_TOKEN,
       }
@@ -55,29 +54,22 @@ export default Service.extend({
   async getNewsItemByUid(newsItemUid) {
     const api = await this.getApi();
     const document = await api.query(PrismicJS.Predicates.at('my.news_item.uid', newsItemUid));
-    console.log('getNewsItemByUid', document)
     return document.results[0];
   },
 
   async getPreviewDocumentRoute(documentId, token) {
-    console.log('getPreviewDocumentRoute');
-    
     const api = await this.getApi();
-
-    const url = await api.previewSession(token, resolveDocumentLink, '/');
-    console.log('url',url);
-    
+    const url = await api.previewSession(token, resolveDocumentLink, '/');   
     return url; 
   },
 
 });
 
-function resolveDocumentLink(doc) {
-  console.log('doc',doc);
-  
+function resolveDocumentLink(doc) { 
   if (doc.type === 'news_item') {
-    return ['news.show', doc.uid]
-  }
-
-  throw new Error('Document type not supported.')
+    return ['news.show', doc.uid];
+  }  else if(doc.type === 'faq') {
+    return ['faq',doc.uid];
+  } 
+  return [doc.uid];
 }
